@@ -91,6 +91,18 @@ export function mountApp(root: HTMLElement, storage: StoragePort): void {
     live.textContent = next.misses.length === 9 ? 'Session complete.' : `${next.misses.length * 8} of 72 putts recorded.`;
     render();
   }
+  function record(misses: number) {
+    update(session => recordBatch(session, misses));
+    const tapped = main.querySelector<HTMLButtonElement>(`.miss-button[aria-label="${misses} misses"]`);
+    if (tapped) {
+      tapped.classList.add('entry-pulse');
+      tapped.addEventListener('animationend', () => tapped.classList.remove('entry-pulse'), { once: true });
+    }
+    const feedback = el('div', `entry-feedback ${error ? 'unsaved' : ''}`,
+      error ? `${8 - misses}/8 made · not saved` : `✓ ${8 - misses}/8 made`);
+    feedback.addEventListener('animationend', () => feedback.remove(), { once: true });
+    main.append(feedback);
+  }
   function render() {
     const focused = document.activeElement?.getAttribute('aria-label');
     main.replaceChildren();
@@ -119,7 +131,7 @@ export function mountApp(root: HTMLElement, storage: StoragePort): void {
     else {
       const current = data.sessions.find(s => s.id === activeId);
       if (current?.misses.length === 9) content.append(renderResults(current, { start, undo: () => update(undoBatch) }));
-      else content.append(renderPractice(current ?? null, { start, record: misses => update(s => recordBatch(s, misses)), undo: () => update(undoBatch) }));
+      else content.append(renderPractice(current ?? null, { start, record, undo: () => update(undoBatch) }));
     }
     main.append(content); if (!main.isConnected) root.append(main);
     if (focused) Array.from(main.querySelectorAll<HTMLButtonElement>('button')).find(b => b.getAttribute('aria-label') === focused)?.focus({ preventScroll: true });
