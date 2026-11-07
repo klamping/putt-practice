@@ -14,9 +14,8 @@ npm run dev
 ```
 
 Open the local URL printed by Vite. To use your phone on the same network,
-open the printed network URL. Use HTTPS for deployed sites; the application
-uses the browser's secure-context UUID API. For phone development on plain
-HTTP, use an HTTPS tunnel or a local HTTPS server.
+open the printed network URL. Plain HTTP works for local network testing;
+use HTTPS for deployed sites.
 
 ## Checks
 
@@ -45,6 +44,10 @@ or installable-app support.
 Each batch and undo is automatically saved in browser localStorage. Reloading
 resumes the unfinished session. If a save fails, keep the page open, retry, or
 export a backup to preserve current in-memory progress.
+
+Use one practice tab at a time. If another tab has changed the saved data,
+stale saves are blocked. Export any unsaved progress, then choose **Load saved
+data** to use the newer saved copy.
 
 In **Backup**, choose **Export backup** to download all sessions, including the
 unfinished one. Keep backups outside browser storage, such as in your files or

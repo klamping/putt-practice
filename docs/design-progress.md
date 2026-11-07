@@ -36,3 +36,14 @@ as well as the overall percentage. Prototype rounds percentages to whole numbers
 Practice with automatic progress saving, per-distance and overall results,
 dated history with percentages over time, and local backup export/restore.
 Written specification: docs/superpowers/specs/2026-11-07-putting-practice-design.md.
+
+## Implementation
+
+All four tasks implemented on master at the user's request. Independent review
+completed; stale-tab overwrite protection and plain-HTTP session creation fixes
+verified with failing-then-passing browser regressions. Final checks: 30 unit tests,
+12 browser tests, TypeScript checking, production build, and whitespace checking
+passed. Mobile and desktop screenshots inspected.
+
+Deferred review minors: keyboard focus after non-entry re-renders; identical
+accessible names for same-day history buttons (visible dates/times/scores remain).

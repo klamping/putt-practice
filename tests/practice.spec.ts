@@ -56,3 +56,22 @@ test('shows local dates and fits small screens with reachable buttons', async ({
   await page.getByRole('button', { name: '0 misses', exact: true }).focus();
   await page.keyboard.press('Enter'); await expect(page.getByText('8 / 72 putts')).toBeVisible();
 });
+test('a stale second tab cannot erase newer history', async ({ page, context }) => {
+  await page.goto('/'); const stale = await context.newPage(); await stale.goto('/');
+  await page.getByRole('button', { name: 'Start session', exact: true }).click();
+  for (let i = 0; i < 9; i++) await miss(page, 1);
+  await stale.getByRole('button', { name: 'Start session', exact: true }).click();
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('putt-practice:v1')!));
+  expect(stored.sessions).toHaveLength(1); expect(stored.sessions[0].misses).toHaveLength(9);
+  await expect(stale.getByRole('alert')).toContainText('another tab');
+  stale.once('dialog', d => d.accept());
+  await stale.getByRole('button', { name: 'Load saved data' }).click();
+  await stale.getByRole('button', { name: 'History', exact: true }).click();
+  await expect(stale.getByText('1 session', { exact: true })).toBeVisible();
+});
+test('starts sessions when the secure-context UUID API is unavailable', async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(crypto, 'randomUUID', { value: undefined }));
+  await page.goto('/'); await page.getByRole('button', { name: 'Start session', exact: true }).click();
+  await miss(page, 1); await page.reload();
+  await expect(page.getByText('8 / 72 putts')).toBeVisible();
+});
