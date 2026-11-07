@@ -6,8 +6,9 @@
 - [x] Present design sections for approval: user approved first-version summary.
 - [x] Write and commit design specification.
 - [x] Self-review specification: checked scope, calculations, restore behavior, and placeholders.
-- [ ] Obtain user review of written specification.
-- [ ] Create implementation plan using writing-plans.
+- [x] Obtain user review of written specification: user approved.
+- [x] Create implementation plan using writing-plans.
+- [x] Obtain plan approval and execution-method selection: native, on master as requested.
 
 Offer the optional visual companion if a visual question would benefit from it.
 
