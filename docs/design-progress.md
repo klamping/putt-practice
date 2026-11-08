@@ -47,3 +47,13 @@ passed. Mobile and desktop screenshots inspected.
 
 Deferred review minors: keyboard focus after non-entry re-renders; identical
 accessible names for same-day history buttons (visible dates/times/scores remain).
+
+## Offline addition
+
+User approved production offline caching for a Netlify deployment. The build
+generates a versioned service worker that caches emitted HTML/JS/CSS. Header
+shows Ready offline after activation. Updates wait for open tabs to close.
+No session data is stored in or removed by the service-worker cache.
+Netlify build settings and local-IP-to-HTTPS backup migration are documented.
+Verified production browser scenarios: offline reopen/resume/history/backup,
+non-interrupting updates, and failed precaching with reload retry.

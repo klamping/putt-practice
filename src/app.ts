@@ -5,6 +5,7 @@ import { renderPractice } from './views/practice';
 import { renderResults } from './views/results';
 import { renderHistory } from './views/history';
 import { renderBackup, type BackupActions } from './views/backup';
+import { getOfflineStatus } from './offline';
 
 export function mountApp(root: HTMLElement, storage: StoragePort): void {
   // Capture exactly the bytes read at startup so a stale page cannot replace
@@ -106,7 +107,10 @@ export function mountApp(root: HTMLElement, storage: StoragePort): void {
   function render() {
     const focused = document.activeElement?.getAttribute('aria-label');
     main.replaceChildren();
-    const header = el('header', 'app-header'); header.append(el('span', 'brand', 'putt / practice'), el('span', 'device-label', 'ON THIS DEVICE'));
+    const header = el('header', 'app-header');
+    const offlineStatus = el('span', 'device-label', getOfflineStatus());
+    offlineStatus.dataset.offlineStatus = ''; offlineStatus.setAttribute('role', 'status');
+    header.append(el('span', 'brand', 'putt / practice'), offlineStatus);
     const nav = el('nav', 'nav'); nav.setAttribute('aria-label', 'Main navigation');
     for (const name of ['Practice', 'History', 'Backup'] as const) {
       const tab = button(name, () => { view = name; resultId = null; editableResult = false; render(); }, `nav-button ${view === name ? 'selected' : ''}`);

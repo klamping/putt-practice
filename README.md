@@ -23,21 +23,55 @@ use HTTPS for deployed sites.
 npm test
 npx playwright install chromium
 npm run test:e2e
+npm run test:offline
 npm run typecheck
 npm run build
 ```
 
 Playwright runs Chromium against a development server on port 4173. Unit tests
 cover calculations and data validation; browser tests cover entry, history,
-reload/resume, backups, storage failure, and mobile layout.
+reload/resume, backups, storage failure, and mobile layout. `test:offline` builds
+the production app and tests reopening with networking disabled, offline
+backup/restore, failed caching, and updates waiting for open sessions.
 
 ## Deploy
 
 `npm run build` produces `dist/`. Serve that directory on any HTTPS static host.
 There is no backend or account. Keep a stable URL: saved data belongs to this
 browser and the site's origin (protocol, hostname, and port). A different URL,
-browser, or device has separate data. The app does not provide offline caching
-or installable-app support.
+browser, or device has separate data.
+
+### Netlify
+
+Connect this repository to Netlify. The included `netlify.toml` sets the build
+command to `npm run build`, the publish directory to `dist`, and Node to 22.
+For manual deployment, build locally and upload `dist/`.
+
+Before moving from the local IP address to Netlify, export a backup from the
+old address. Open the Netlify HTTPS address and restore the file there. The new
+address has its own browser storage; data does not transfer automatically.
+
+## Offline use
+
+1. Open the deployed HTTPS site while connected.
+2. Wait for **Ready offline** in the header. This appears after the app's HTML,
+   JavaScript, and styles have been cached successfully.
+3. You can then reopen or reload that same address without a connection, record
+   sessions, view history, and export/restore backup files. Saving is local.
+
+If the header says **Offline setup failed**, reconnect and reload to retry.
+Browser site data includes both saved sessions and the offline copy, so keep
+your exported backups.
+
+New app versions download while online and wait until all open app tabs close
+before activating. They never force a reload during practice or alter session
+data. Close all app tabs and reopen the site to use a downloaded update.
+
+Offline caching is enabled only in production builds. `npm run dev` remains an
+online development server. On phones, the plain-HTTP local IP address cannot
+register an offline worker; use the Netlify HTTPS address. Localhost is supported
+for production-build testing on your computer. No home-screen installation is
+required.
 
 ## Save and restore data
 

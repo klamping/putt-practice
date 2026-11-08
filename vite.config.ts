@@ -1,2 +1,3 @@
 import { defineConfig } from 'vitest/config';
-export default defineConfig({ test: { include: ['src/**/*.test.ts'] } });
+import { offlineBuild } from './build/offline.ts';
+export default defineConfig({ plugins: [offlineBuild()], test: { include: ['src/**/*.test.ts'] } });
