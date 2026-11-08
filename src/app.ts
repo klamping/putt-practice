@@ -1,4 +1,4 @@
-import { createSession, recordBatch, undoBatch, type Dataset, type Session } from './model';
+import { batchSize, createSession, recordBatch, undoBatch, type Dataset, type Session } from './model';
 import { loadDataset, saveDataset, exportBackup, parseBackup, STORAGE_KEY, type StoragePort } from './storage';
 import { button, el, downloadText } from './ui';
 import { renderPractice } from './views/practice';
@@ -79,9 +79,18 @@ export function mountApp(root: HTMLElement, storage: StoragePort): void {
     if (!draft) {
       const id = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() :
         Array.from(crypto.getRandomValues(new Uint8Array(16)), n => n.toString(16).padStart(2, '0')).join('');
-      draft = createSession(id, new Date().toISOString()); data = { ...data, sessions: [...data.sessions, draft] }; persist();
+      draft = createSession(id, new Date().toISOString(), data.putterCount ?? 8); data = { ...data, sessions: [...data.sessions, draft] }; persist();
     }
     activeId = draft.id; resultId = null; editableResult = false; view = 'Practice'; render();
+  }
+  function setup() {
+    activeId = data.sessions.find(s => s.misses.length < 9)?.id ?? null;
+    resultId = null; editableResult = false; view = 'Practice'; render();
+  }
+  function setPutterCount(count: number) {
+    if (count === (data.putterCount ?? 8)) return;
+    data = { ...data, putterCount: count }; persist();
+    if (error) render();
   }
   function update(change: (session: Session) => Session) {
     if (recovery) return;
@@ -89,18 +98,20 @@ export function mountApp(root: HTMLElement, storage: StoragePort): void {
     const next = change(current);
     data = { ...data, sessions: data.sessions.map(s => s.id === next.id ? next : s) }; persist();
     resultId = next.misses.length === 9 ? next.id : null; editableResult = !!resultId;
-    live.textContent = next.misses.length === 9 ? 'Session complete.' : `${next.misses.length * 8} of 72 putts recorded.`;
+    live.textContent = next.misses.length === 9 ? 'Session complete.' : `${next.misses.length * batchSize(next)} of ${9 * batchSize(next)} putts recorded.`;
     render();
   }
-  function record(misses: number) {
-    update(session => recordBatch(session, misses));
-    const tapped = main.querySelector<HTMLButtonElement>(`.miss-button[aria-label="${misses} misses"]`);
+  function record(makes: number) {
+    const current = data.sessions.find(s => s.id === activeId); if (!current) return;
+    const size = batchSize(current);
+    update(session => recordBatch(session, size - makes));
+    const tapped = main.querySelector<HTMLButtonElement>(`.miss-button[aria-label="${makes} makes"]`);
     if (tapped) {
       tapped.classList.add('entry-pulse');
       tapped.addEventListener('animationend', () => tapped.classList.remove('entry-pulse'), { once: true });
     }
     const feedback = el('div', `entry-feedback ${error ? 'unsaved' : ''}`,
-      error ? `${8 - misses}/8 made · not saved` : `✓ ${8 - misses}/8 made`);
+      error ? `${makes}/${size} made · not saved` : `✓ ${makes}/${size} made`);
     feedback.addEventListener('animationend', () => feedback.remove(), { once: true });
     main.append(feedback);
   }
@@ -109,8 +120,8 @@ export function mountApp(root: HTMLElement, storage: StoragePort): void {
     main.replaceChildren();
     const header = el('header', 'app-header');
     const offlineStatus = el('span', 'device-label', getOfflineStatus());
-    offlineStatus.dataset.offlineStatus = ''; offlineStatus.setAttribute('role', 'status');
-    header.append(el('span', 'brand', 'putt / practice'), offlineStatus);
+    offlineStatus.dataset.offlineStatus = ''; offlineStatus.setAttribute('role', 'status'); offlineStatus.hidden = !offlineStatus.textContent;
+    header.append(el('span', 'brand', "Lee Carvalo's Putting Challenge"), offlineStatus);
     const nav = el('nav', 'nav'); nav.setAttribute('aria-label', 'Main navigation');
     for (const name of ['Practice', 'History', 'Backup'] as const) {
       const tab = button(name, () => { view = name; resultId = null; editableResult = false; render(); }, `nav-button ${view === name ? 'selected' : ''}`);
@@ -130,12 +141,12 @@ export function mountApp(root: HTMLElement, storage: StoragePort): void {
       draftCount: data.sessions.filter(s => s.misses.length < 9).length,
       pending, error: backupError, recovery, rawAvailable: raw !== null,
     }, backupActions));
-    else if (result) content.append(renderResults(result, { start, undo: editableResult ? () => update(undoBatch) : undefined }));
-    else if (view === 'History') content.append(renderHistory(data.sessions, { start, open(id) { resultId = id; editableResult = false; render(); } }));
+    else if (result) content.append(renderResults(result, { start: setup, undo: editableResult ? () => update(undoBatch) : undefined }));
+    else if (view === 'History') content.append(renderHistory(data.sessions, { start: setup, open(id) { resultId = id; editableResult = false; render(); } }));
     else {
       const current = data.sessions.find(s => s.id === activeId);
-      if (current?.misses.length === 9) content.append(renderResults(current, { start, undo: () => update(undoBatch) }));
-      else content.append(renderPractice(current ?? null, { start, record, undo: () => update(undoBatch) }));
+      if (current?.misses.length === 9) content.append(renderResults(current, { start: setup, undo: () => update(undoBatch) }));
+      else content.append(renderPractice(current ?? null, { start, record, setPutterCount, undo: () => update(undoBatch) }, data.putterCount ?? 8));
     }
     main.append(content); if (!main.isConnected) root.append(main);
     if (focused) Array.from(main.querySelectorAll<HTMLButtonElement>('button')).find(b => b.getAttribute('aria-label') === focused)?.focus({ preventScroll: true });

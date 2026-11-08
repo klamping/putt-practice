@@ -7,6 +7,6 @@ try { storage = window.localStorage; }
 catch { storage = { getItem() { throw new Error('Unavailable'); }, setItem() { throw new Error('Unavailable'); } }; }
 mountApp(document.getElementById('app')!, storage);
 void enableOffline(() => {
-  const label = document.querySelector('[data-offline-status]');
-  if (label) label.textContent = getOfflineStatus();
+  const label = document.querySelector<HTMLElement>('[data-offline-status]');
+  if (label) { label.textContent = getOfflineStatus(); label.hidden = !label.textContent; }
 });

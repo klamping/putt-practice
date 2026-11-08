@@ -36,7 +36,7 @@ test('failed restore preserves memory and stored data; unsaved entries remain ex
   await page.goto('/'); await page.getByRole('button', { name: 'Start session', exact: true }).click();
   const previous = await page.evaluate(() => localStorage.getItem('putt-practice:v1'));
   await page.evaluate(() => { (window as any).originalSet = Storage.prototype.setItem; Storage.prototype.setItem = () => { throw new Error('Quota'); }; });
-  await page.getByRole('button', { name: '2 misses', exact: true }).click();
+  await page.getByRole('button', { name: '6 makes', exact: true }).click();
   await backup(page); await upload(page, fixture); await page.getByRole('button', { name: 'Replace data and restore' }).click();
   await expect(page.getByText(/Restore failed/)).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('putt-practice:v1'))).toBe(previous);
@@ -72,14 +72,14 @@ test('storage getter denial still allows practice and backup', async ({ page }) 
   await page.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new Error('Denied'); } }));
   await page.goto('/'); await expect(page.getByRole('alert')).toContainText('unavailable');
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
-  await page.getByRole('button', { name: '3 misses', exact: true }).click();
+  await page.getByRole('button', { name: '5 makes', exact: true }).click();
   await backup(page); const data = JSON.parse(await exported(page)); expect(data.sessions[0].misses).toEqual([3]);
 });
 test('stale restore cannot erase another tab and local progress remains exportable', async ({ page, context }) => {
   await page.goto('/'); await page.getByRole('button', { name: 'Start session', exact: true }).click();
   const stale = await context.newPage(); await stale.goto('/');
-  await page.getByRole('button', { name: '2 misses', exact: true }).click();
-  await stale.getByRole('button', { name: '3 misses', exact: true }).click();
+  await page.getByRole('button', { name: '6 makes', exact: true }).click();
+  await stale.getByRole('button', { name: '5 makes', exact: true }).click();
   await backup(stale); await upload(stale, fixture); await stale.getByRole('button', { name: 'Replace data and restore' }).click();
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('putt-practice:v1')!));
   expect(stored.sessions).toHaveLength(1); expect(stored.sessions[0].misses).toEqual([2]);

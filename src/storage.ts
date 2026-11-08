@@ -1,4 +1,4 @@
-import type { Dataset, Session } from './model';
+import { validatePutterCount, type Dataset, type Session } from './model';
 export type StoragePort = Pick<Storage, 'getItem' | 'setItem'>;
 export type LoadResult = { kind: 'ok'; data: Dataset } | { kind: 'corrupt'; raw: string; message: string } | { kind: 'unavailable'; message: string };
 export const STORAGE_KEY = 'putt-practice:v1';
@@ -21,11 +21,12 @@ export function validateDataset(value: unknown): Dataset {
     if (typeof s.id !== 'string' || !s.id.trim() || ids.has(s.id)) throw new Error('Session IDs must be present and unique.');
     ids.add(s.id);
     const startedAt = iso(s.startedAt);
-    if (!Array.isArray(s.misses) || s.misses.length > 9 || s.misses.some(n => !Number.isInteger(n) || n < 0 || n > 8)) throw new Error('Each session needs up to nine batches of 0–8 misses.');
+    const size = s.batchSize === undefined ? 8 : validatePutterCount(s.batchSize);
+    if (!Array.isArray(s.misses) || s.misses.length > 9 || s.misses.some(n => !Number.isInteger(n) || n < 0 || n > size)) throw new Error('Invalid session batches.');
     if (s.misses.length < 9 && ++drafts > 1) throw new Error('Only one unfinished session is allowed.');
-    return { id: s.id, startedAt, misses: [...s.misses] as number[] };
+    return { id: s.id, startedAt, misses: [...s.misses] as number[], ...(s.batchSize === undefined ? {} : { batchSize: size }) };
   });
-  return { version: 1, sessions };
+  return { version: 1, sessions, ...(root.putterCount === undefined ? {} : { putterCount: validatePutterCount(root.putterCount) }) };
 }
 export function loadDataset(storage: StoragePort): LoadResult {
   let raw: string | null;

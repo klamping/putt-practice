@@ -25,7 +25,7 @@ function trend(sessions: Session[]): HTMLElement {
 export function renderHistory(sessions: Session[], actions: { open(id: string): void; start(): void }): HTMLElement {
   const view = el('section', 'history');
   const completed = sessions.filter(s => s.misses.length === 9).sort((a, b) => b.startedAt.localeCompare(a.startedAt));
-  view.append(el('p', 'eyebrow', 'YOUR PRACTICE'), el('h1', '', 'History'), el('p', 'muted', `${completed.length} ${completed.length === 1 ? 'session' : 'sessions'}`));
+  view.append(el('h1', '', 'History'), el('p', 'muted', `${completed.length} ${completed.length === 1 ? 'session' : 'sessions'}`));
   if (!completed.length) { view.append(el('p', 'empty', 'Completed sessions will appear here.'), button('Start session', actions.start, 'button primary')); return view; }
   const stats = aggregate(completed); const summary = el('div', 'summary-grid');
   for (const ft of DISTANCES) {

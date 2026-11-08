@@ -10,6 +10,9 @@ let revision = 1;
 let failPrecache = false;
 let stylesheetRequests = 0;
 let redirectIndex = false;
+async function ready(page: import('@playwright/test').Page) {
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+}
 
 test.beforeAll(async () => {
   server = createServer(async (request, response) => {
@@ -36,19 +39,19 @@ test.beforeEach(() => { failPrecache = false; stylesheetRequests = 0; redirectIn
 
 test('reopens offline, resumes practice, and uses history and backups without networking', async ({ page, context }) => {
   await page.goto(origin);
-  await expect(page.getByText('Ready offline', { exact: true })).toBeVisible();
+  await ready(page);
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
-  await page.getByRole('button', { name: '2 misses', exact: true }).click();
+  await page.getByRole('button', { name: '6 makes', exact: true }).click();
   await context.setOffline(true);
   await page.close();
   const offline = await context.newPage();
   await offline.goto(`${origin}/?offline=1`);
-  await expect(offline.getByText('Ready offline', { exact: true })).toBeVisible();
+  await ready(offline);
   await expect(offline.getByText('8 / 72 putts')).toBeVisible();
-  await offline.getByRole('button', { name: '2 misses', exact: true }).click();
+  await offline.getByRole('button', { name: '6 makes', exact: true }).click();
   await offline.reload();
   await expect(offline.getByText('16 / 72 putts')).toBeVisible();
-  for (let n = 0; n < 7; n++) await offline.getByRole('button', { name: '2 misses', exact: true }).click();
+  for (let n = 0; n < 7; n++) await offline.getByRole('button', { name: '6 makes', exact: true }).click();
   await expect(offline.getByText('54 / 72 made')).toBeVisible();
   await offline.getByRole('button', { name: 'History', exact: true }).click();
   await expect(offline.getByText('1 session', { exact: true })).toBeVisible();
@@ -67,16 +70,16 @@ test('reopens offline, resumes practice, and uses history and backups without ne
 
 test('an available update waits without reloading or interrupting practice', async ({ page }) => {
   await page.goto(origin);
-  await expect(page.getByText('Ready offline', { exact: true })).toBeVisible();
+  await ready(page);
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
-  await page.getByRole('button', { name: '1 misses', exact: true }).click();
+  await page.getByRole('button', { name: '7 makes', exact: true }).click();
   await page.evaluate(() => { (window as any).sessionMarker = 'still-open'; });
   revision++;
   await page.evaluate(async () => { await (await navigator.serviceWorker.getRegistration())!.update(); });
   await expect.poll(() => page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting)).toBe(true);
   expect(await page.evaluate(() => (window as any).sessionMarker)).toBe('still-open');
   await expect(page.getByText('8 / 72 putts')).toBeVisible();
-  await page.getByRole('button', { name: '1 misses', exact: true }).click();
+  await page.getByRole('button', { name: '7 makes', exact: true }).click();
   await expect(page.getByText('16 / 72 putts')).toBeVisible();
 });
 
@@ -86,17 +89,17 @@ test('does not claim offline readiness when an asset fails to cache, and retries
   await expect(page.getByText('Offline setup failed', { exact: true })).toBeVisible();
   await expect(page.getByText('Ready offline', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
-  await page.getByRole('button', { name: '3 misses', exact: true }).click();
+  await page.getByRole('button', { name: '5 makes', exact: true }).click();
   failPrecache = false;
   await page.reload();
-  await expect(page.getByText('Ready offline', { exact: true })).toBeVisible();
+  await ready(page);
   await expect(page.getByText('8 / 72 putts')).toBeVisible();
 });
 
 test('reopens offline when the host redirects index.html to the root', async ({ page, context }) => {
   redirectIndex = true;
   await page.goto(origin);
-  await expect(page.getByText('Ready offline', { exact: true })).toBeVisible();
+  await ready(page);
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole('button', { name: 'Start session', exact: true })).toBeVisible();

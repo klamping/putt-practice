@@ -3,6 +3,17 @@ import { createSession, recordBatch, undoBatch, getProgress, summarize, aggregat
 const session = (misses: number[] = []) => ({ ...createSession('one', '2026-11-07T12:00:00.000Z'), misses });
 
 describe('practice calculations', () => {
+  it('uses each session’s batch size for progress, scores, and mixed history', () => {
+    const small = { ...createSession('small', '2026-11-07T12:00:00.000Z', 5), misses: Array(9).fill(1) };
+    expect(getProgress(small).putts).toBe(45);
+    expect(summarize(small).total).toEqual({ made: 36, attempts: 45, percent: 80 });
+    expect(aggregate([small, session(Array(9).fill(0))]).total).toEqual({ made: 108, attempts: 117, percent: 92 });
+    expect(aggregate([small, session(Array(9).fill(0))]).distances[20]).toEqual({ made: 36, attempts: 39, percent: 92 });
+    expect(() => recordBatch({ ...small, misses: [] }, 6)).toThrow();
+  });
+  it.each([0, -1, 1.5, NaN, Infinity, 101, 1000000])('rejects invalid putter counts %s', value => {
+    expect(() => createSession('bad', '2026-11-07T12:00:00.000Z', value)).toThrow();
+  });
   it('advances after 24 attempts and preserves the original', () => {
     const original = session([0, 0]);
     const next = recordBatch(original, 0);

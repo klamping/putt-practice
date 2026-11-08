@@ -1,9 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
-async function miss(page: Page, n: number) { await page.getByRole('button', { name: `${n} misses`, exact: true }).click(); }
+async function miss(page: Page, n: number) { await page.getByRole('button', { name: `${8 - n} makes`, exact: true }).click(); }
 test('records 72 putts, resumes, undoes, and retains read-only history', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
-  for (let n = 0; n <= 8; n++) await expect(page.getByRole('button', { name: `${n} misses`, exact: true })).toBeVisible();
+  for (let n = 0; n <= 8; n++) await expect(page.getByRole('button', { name: `${n} makes`, exact: true })).toBeVisible();
   await miss(page, 0); await miss(page, 1); await page.reload();
   await expect(page.getByText('Batch 3 of 3', { exact: false })).toBeVisible();
   await miss(page, 1);
@@ -22,6 +22,7 @@ test('records 72 putts, resumes, undoes, and retains read-only history', async (
   await expect(page.getByRole('heading', { name: '30 ft', exact: true })).toBeVisible();
   await miss(page, 4);
   await page.getByRole('button', { name: 'New session' }).click();
+  await page.getByRole('button', { name: 'Start session', exact: true }).click();
   await page.reload();
   await page.getByRole('button', { name: 'History', exact: true }).click();
   await expect(page.getByText('1 session', { exact: true })).toBeVisible();
@@ -51,9 +52,9 @@ test('shows local dates and fits small screens with reachable buttons', async ({
   await page.getByRole('button', { name: 'Practice', exact: true }).click();
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-  const box = await page.getByRole('button', { name: '0 misses', exact: true }).boundingBox();
+  const box = await page.getByRole('button', { name: '0 makes', exact: true }).boundingBox();
   expect(box!.width).toBeGreaterThanOrEqual(48); expect(box!.height).toBeGreaterThanOrEqual(48);
-  await page.getByRole('button', { name: '0 misses', exact: true }).focus();
+  await page.getByRole('button', { name: '0 makes', exact: true }).focus();
   await page.keyboard.press('Enter'); await expect(page.getByText('8 / 72 putts')).toBeVisible();
 });
 test('a stale second tab cannot erase newer history', async ({ page, context }) => {

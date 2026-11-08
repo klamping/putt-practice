@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('confirms each entry immediately, including repeated values and the final batch', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
-  const enter = () => page.getByRole('button', { name: '2 misses', exact: true }).click();
+  const enter = () => page.getByRole('button', { name: '6 makes', exact: true }).click();
   await enter();
   await expect(page.getByText('✓ 6/8 made', { exact: true })).toBeVisible();
   await expect(page.getByText('Batch 2 of 3 · 8 putts')).toBeVisible();

@@ -1,4 +1,4 @@
-let status = 'ON THIS DEVICE';
+let status = '';
 export function getOfflineStatus(): string { return status; }
 
 export async function enableOffline(onStatus: () => void): Promise<void> {
@@ -11,17 +11,17 @@ export async function enableOffline(onStatus: () => void): Promise<void> {
   setStatus('Preparing offline…');
   try {
     const registration = await navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { updateViaCache: 'none' });
-    if (registration.active) setStatus('Ready offline');
+    if (registration.active) setStatus('');
     const worker = registration.installing;
     if (worker) {
       const check = () => {
-        if (worker.state === 'activated') setStatus('Ready offline');
+        if (worker.state === 'activated') setStatus('');
         else if (worker.state === 'redundant' && !registration.active) setStatus('Offline setup failed');
       };
       worker.addEventListener('statechange', check);
       check();
     }
   } catch {
-    setStatus(navigator.serviceWorker.controller ? 'Ready offline' : 'Offline setup failed');
+    setStatus(navigator.serviceWorker.controller ? '' : 'Offline setup failed');
   }
 }

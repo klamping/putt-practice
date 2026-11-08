@@ -5,6 +5,14 @@ const date = '2026-11-07T12:00:00.000Z';
 const full = { id: 'complete', startedAt: date, misses: Array(9).fill(1) };
 const data: Dataset = { version: 1, sessions: [full, { id: 'draft', startedAt: date, misses: [2] }] };
 it('round-trips completed and unfinished sessions', () => expect(parseBackup(exportBackup(data, date))).toEqual(data));
+it('round-trips batch sizes and the preferred putter count alongside legacy sessions', () => {
+  const configured = { ...data, putterCount: 5, sessions: [full, { ...data.sessions[1], batchSize: 12, misses: [10] }] };
+  expect(parseBackup(exportBackup(configured, date))).toEqual(configured);
+});
+it.each([0, -1, 1.5, null, '5', 101, 1000000])('rejects invalid saved putter counts %s', value => {
+  expect(() => validateDataset({ ...data, putterCount: value })).toThrow();
+  expect(() => validateDataset({ ...data, sessions: [{ ...full, batchSize: value }] })).toThrow();
+});
 it.each([
   null, {}, { version: 2, sessions: [] }, { version: 1, sessions: null },
   { version: 1, sessions: [full, full] },

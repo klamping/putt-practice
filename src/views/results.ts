@@ -4,7 +4,7 @@ export function renderResults(session: Session, actions: { undo?: () => void; st
   const view = el('section', 'results'); const summary = summarize(session);
   view.append(el('p', 'eyebrow', formatDate(session.startedAt)), el('h1', '', 'Session complete'));
   const total = el('div', 'result-total');
-  total.append(el('strong', 'total-percent', percent(summary.total.percent)), el('span', 'muted', `${summary.total.made} / 72 made`));
+  total.append(el('strong', 'total-percent', percent(summary.total.percent)), el('span', 'muted', `${summary.total.made} / ${summary.total.attempts} made`));
   view.append(total);
   const table = el('table', 'score-table');
   const head = el('thead'); const labels = el('tr');
@@ -12,7 +12,7 @@ export function renderResults(session: Session, actions: { undo?: () => void; st
   head.append(labels); const body = el('tbody');
   for (const ft of DISTANCES) {
     const row = el('tr'); const score = summary.distances[ft];
-    row.append(el('th', '', `${ft} ft`), el('td', '', `${score.made} / 24`), el('td', 'percentage', percent(score.percent))); body.append(row);
+    row.append(el('th', '', `${ft} ft`), el('td', '', `${score.made} / ${score.attempts}`), el('td', 'percentage', percent(score.percent))); body.append(row);
   }
   table.append(head, body); view.append(table);
   const actionsRow = el('div', 'result-actions');

@@ -1,7 +1,7 @@
-# Putting practice
+# Lee Carvalo's Putting Challenge
 
-A personal mobile putting log. Three batches of 8 putts at each of 20, 25, and
-30 feet. Tap the misses after each batch. Results show makes and percentages
+A personal mobile putting log. Set the number of putters on the home screen (1–100, default 8).
+Practice three batches at each of 20, 25, and 30 feet. Tap the makes after each batch. Results show makes and percentages
 per distance; history tracks completed sessions continuously.
 
 ## Run locally
@@ -54,8 +54,8 @@ address has its own browser storage; data does not transfer automatically.
 ## Offline use
 
 1. Open the deployed HTTPS site while connected.
-2. Wait for **Ready offline** in the header. This appears after the app's HTML,
-   JavaScript, and styles have been cached successfully.
+2. Allow the initial page load and offline preparation to finish. The app caches
+   its HTML, JavaScript, and styles in the background.
 3. You can then reopen or reload that same address without a connection, record
    sessions, view history, and export/restore backup files. Saving is local.
 
